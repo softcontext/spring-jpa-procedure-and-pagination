@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.employee.service.DeptService;
 
 @RestController
-public class DeptController {
+public class DeptRestController {
 	@Autowired
 	private DeptService deptService;
 
@@ -40,7 +40,6 @@ public class DeptController {
 	@GetMapping("/depts/{page}")
 	public Object getDeptsLimitForPage(@PathVariable int page,
 			@RequestParam(name="size", required=false, defaultValue="10") int size){
-		
 		return deptService.selectByLimit(page, size);
 	}
 }

@@ -10,18 +10,19 @@ import org.springframework.data.domain.Sort;
  * @author Seokwon Song (softcontext@gmail.com)
  * @since 2017.4.12.
  * 
- * @param <T>
+ * <T>
  * 	T는 처리 대상인 Value Object의 자료형으로 선언한다.
  * 
  * 이용예제 : 1-base paging index 을 사용한다.
  * ---------------------------------------------
- * 	int page = pageable.getPageNumber() > 0 ? (pageable.getPageNumber() - 1) : pageable.getPageNumber();
- * 	Pageable p = new PageRequest(page, pageable.getPageSize(), pageable.getSort());
- * 	Page<Dept> result = deptRepository.findAll(p);
- * 	
- * 	Pagination<Dept> pagination = new Pagination<>();
- * 	pagination.proceed(result, bsize, pagination); 
- * 	return pagination;
+ * 	@Override
+ * 	public Pagination<Dept> selectByLimitForPagination(Pageable pageable, int bsize) {
+ * 		int page = pageable.getPageNumber() > 0 ? (pageable.getPageNumber() - 1) : pageable.getPageNumber();
+ * 		Pageable p = new PageRequest(page, pageable.getPageSize(), pageable.getSort());
+ * 		Page<Dept> result = deptRepository.findAll(p);
+ * 		
+ * 		return new Pagination<Dept>(result, bsize);
+ * 	}
  */
 public class Pagination<T> {
 	private long totalRows;
@@ -42,54 +43,37 @@ public class Pagination<T> {
 	private boolean isLast; // 마지막 페이지 여부
 	private int numberOfElements; // 현재 페이지의 로우 수
 	private Sort sort; // 정렬 기준
-//	"sort": [
-//		{
-//			"direction": "ASC",
-//			"property": "deptno",
-//			"ignoreCase": false,
-//			"nullHandling": "NATIVE",
-//			"ascending": true,
-//			"descending": false
-//		}
-//	]
 	private List<T> content;
 	
 	/**
-	 * 
 	 * @param result
 	 * 	Spring Data JPA 기술로부터 얻은 페이징 정보가 담겨 있는 DTO 객체를 받는다. 
 	 * 	이전, 현재, 다음 페이징의 간단한 처리의 적합한 상태이다. 
 	 * 	이 데이터를 이용 계산하여 페이징 넘버링 기능을 제공하기 위한 페이징 처리 시 필요한 내용을 구한다.
 	 * @param bsize
 	 * 	블록 당 페이지 수
-	 * @param p
-	 * 	빈 DTO 객체를 받는다.
-	 * @return Pagination<T>
-	 * 	빈 DTO 객체에 페이징 처리 시 필요한 내용을 채워 넣은 후 리턴한다.
 	 */
-	public Pagination<T> proceed(Page<T> result, int bsize, Pagination<T> p){ // bsize : 블록 당 페이지 수[사용자 지정]
-		p.setTotalRows(result.getTotalElements()); // 전체 로우 수[디비 조회]
+	public Pagination(Page<T> result, int bsize) {
+		this.setTotalRows(result.getTotalElements()); // 전체 로우 수[디비 조회]
 		
-		p.setThisPage(result.getNumber()+1); // 현재 페이지 (1-base 로 보정) [사용자 지정]
-		p.setRowsPerPage(result.getSize()); // 페이지 당 로우 수 [사용자 지정]
+		this.setThisPage(result.getNumber()+1); // 현재 페이지 (1-base 로 보정) [사용자 지정]
+		this.setRowsPerPage(result.getSize()); // 페이지 당 로우 수 [사용자 지정]
 		
-		p.setPagesPerBlock(bsize);
+		this.setPagesPerBlock(bsize);
 		
-		p.setTotalPages(result.getTotalPages()); // 전체 페이지 수
-		p.setTotalBlocks((long) Math.ceil(p.getTotalPages() / (double) p.getPagesPerBlock())); // 전체 블록 수
+		this.setTotalPages(result.getTotalPages()); // 전체 페이지 수
+		this.setTotalBlocks((long) Math.ceil(this.getTotalPages() / (double) this.getPagesPerBlock())); // 전체 블록 수
 		
-		p.setThisBlock((long) Math.ceil(p.getThisPage() / (double) p.getPagesPerBlock())); // 현재 블록
-		p.setThisBlockEndPage(p.getThisBlock() * p.getPagesPerBlock()); // 현재 블록 마지막 페이지 번호
-		p.setThisBlockStartPage(p.getThisBlockEndPage() - p.getPagesPerBlock() + 1); // 현재 블록 첫 페이지 번호
+		this.setThisBlock((long) Math.ceil(this.getThisPage() / (double) this.getPagesPerBlock())); // 현재 블록
+		this.setThisBlockEndPage(this.getThisBlock() * this.getPagesPerBlock()); // 현재 블록 마지막 페이지 번호
+		this.setThisBlockStartPage(this.getThisBlockEndPage() - this.getPagesPerBlock() + 1); // 현재 블록 첫 페이지 번호
 		
-		p.setZeroBase(false); // 1-base paging index
-		p.setFirst(result.isFirst());
-		p.setLast(result.isLast());
-		p.setNumberOfElements(result.getNumberOfElements());
-		p.setSort(result.getSort());
-		p.setContent(result.getContent());
-		
-		return p;
+		this.setZeroBase(false); // 1-base paging index
+		this.setFirst(result.isFirst());
+		this.setLast(result.isLast());
+		this.setNumberOfElements(result.getNumberOfElements());
+		this.setSort(result.getSort());
+		this.setContent(result.getContent());
 	}
 	
 	public long getTotalRows() {

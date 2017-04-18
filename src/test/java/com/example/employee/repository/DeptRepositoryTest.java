@@ -83,8 +83,8 @@ public class DeptRepositoryTest {
 		 * TotalRows = 11 // [디비 조회]
 		 * 
 		 * ThisPage = 1 // 현재 페이지 (1-base) [사용자 지정]
-		 * RowsPerPage(size) = 2 // [사용자 지정]
-		 * PagesPerBlock = 2 // [사용자 지정]
+		 * RowsPerPage(size) = 2 // 페이지 당 로우 수 [사용자 지정]
+		 * PagesPerBlock = 2 // 블록 당 페이지 수 [사용자 지정]
 		 * 
 		 * TotalPages = TotalRows/RowsPerPage = 11/2 = 5.5 ==올림==> 6
 		 * TotalBlocks = TotalPages/PagesPerBlock = 6/2 = 3 ==올림==> 3
@@ -93,32 +93,46 @@ public class DeptRepositoryTest {
 		 * ThisBlockEndPage = ThisBlock*PagesPerBlock = 1*2 = 2
 		 * ThisBlockStartPage = ThisBlockEndPage-PagesPerBlock+1 = 2-2+1(보정) = 1
 		 */
-		Pagination<Dept> p = new Pagination<>();
-		p.setTotalRows(result.getTotalElements()); // 전체 로우 수[디비 조회]
-		
-		p.setThisPage(result.getNumber()+1); // 현재 페이지 (1-base 로 보정) [사용자 지정]
-		p.setRowsPerPage(result.getSize()); // 페이지 당 로우 수 [사용자 지정]
 		int bsize = 2; // 블록 당 페이지 수[사용자 지정]
-		p.setPagesPerBlock(bsize);
 		
-		p.setTotalPages(result.getTotalPages()); // 전체 페이지 수
-		p.setTotalBlocks((long) Math.ceil(p.getTotalPages() / (double) p.getPagesPerBlock())); // 전체 블록 수
-		
-		p.setThisBlock((long) Math.ceil(p.getThisPage() / (double) p.getPagesPerBlock())); // 현재 블록
-		p.setThisBlockEndPage(p.getThisBlock() * p.getPagesPerBlock()); // 현재 블록 마지막 페이지 번호
-		p.setThisBlockStartPage(p.getThisBlockEndPage() - p.getPagesPerBlock() + 1); // 현재 블록 첫 페이지 번호
+		Pagination<Dept> p = new Pagination<>(result, bsize);
 		
 		System.out.println(mapper.writeValueAsString(p));
-		
-		p.setZeroBase(false);
-		p.setFirst(result.isFirst());
-		p.setLast(result.isLast());
-		p.setNumberOfElements(result.getNumberOfElements());
-		p.setSort(result.getSort());
-		p.setContent(result.getContent());
-		
-		System.out.println("================================");
-		System.out.println(mapper.writeValueAsString(p));
+//		{
+//			"totalRows":11,
+//			"thisPage":1,
+//			"rowsPerPage":2,
+//			"pagesPerBlock":2,
+//			"totalPages":6,
+//			"totalBlocks":3,
+//			"thisBlock":1,
+//			"thisBlockEndPage":2,
+//			"thisBlockStartPage":1,
+//			"numberOfElements":2,
+//			"sort":[
+//				{
+//					"direction":"ASC",
+//					"property":"deptno",
+//					"ignoreCase":false,
+//					"nullHandling":"NATIVE",
+//					"ascending":true,"descending":false
+//				}],
+//			"content":[
+//				{
+//					"deptno":10,
+//					"dname":"ACCOUNTING",
+//					"loc":"NEW YORK"
+//				},
+//				{
+//					"deptno":20,
+//					"dname":"RESEARCH",
+//					"loc":"DALLAS"
+//				}],
+//			"first":true,
+//			"last":false,
+//			"zeroBase":false
+//		}
+
 	}
 
 }

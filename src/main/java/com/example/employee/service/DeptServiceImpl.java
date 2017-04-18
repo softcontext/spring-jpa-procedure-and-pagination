@@ -93,9 +93,7 @@ public class DeptServiceImpl implements DeptService {
 		Pageable p = new PageRequest(page, pageable.getPageSize(), pageable.getSort());
 		Page<Dept> result = deptRepository.findAll(p);
 		
-		Pagination<Dept> pagination = new Pagination<>();
-		pagination.proceed(result, bsize, pagination); 
-		return pagination;
+		return new Pagination<Dept>(result, bsize);
 	}
 
 	@Override
